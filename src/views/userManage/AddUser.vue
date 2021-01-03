@@ -1,6 +1,6 @@
 <template>
   <div style="text-align: left">
-    <el-button class="add-button" type="success" @click="dialogFormVisible = true">添加用户</el-button>
+    <el-button class="add-button" type="success" size="mini" @click="dialogFormVisible = true">添加用户</el-button>
     <el-dialog
       title="添加用户"
       :visible.sync="dialogFormVisible"
@@ -120,6 +120,6 @@ export default {
 
 <style scoped>
   .add-button {
-    margin: 18px 0 0 10px;
+    margin: 18px 0 0 30px;
   }
 </style>
