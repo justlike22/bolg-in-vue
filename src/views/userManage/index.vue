@@ -41,9 +41,18 @@
         :row-style="{height:'20px'}"
         :cell-style="{padding:'0px'}"
       >
+        <el-table-column
+          type="selection"
+          width="55"
+        />
         <el-table-column label="id" width="180">
           <template slot-scope="scope">
             <p>{{ scope.row.id }}</p>
+          </template>
+        </el-table-column>
+        <el-table-column label="头像" width="80">
+          <template slot-scope="scope">
+            <img :src="scope.row.avatarUrl">
           </template>
         </el-table-column>
         <el-table-column label="用户名" width="180">
@@ -51,7 +60,7 @@
             <p>{{ scope.row.username }}</p>
           </template>
         </el-table-column>
-        <el-table-column label="昵称" width="180">
+        <el-table-column label="昵称" width="100">
           <template slot-scope="scope">
             <p>{{ scope.row.nickname }}</p>
           </template>

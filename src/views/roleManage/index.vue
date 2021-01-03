@@ -48,7 +48,7 @@
         <el-table-column
           prop="id"
           label="id"
-          width="100"
+          width="180"
         />
         <el-table-column
           prop="name"
@@ -75,12 +75,22 @@
             <el-button
               type="text"
               size="small"
+              @click="handleDelete(scope.$index, scope.row)"
             >
               移除
             </el-button>
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        :current-page="currentPage"
+        :page-sizes="[10, 20, 30, 40]"
+        :page-size="10"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
       <!-- <div style="margin: 20px 0 20px 0;float: left">
         <el-button>取消选择</el-button>
         <el-button>批量删除</el-button>
@@ -97,6 +107,8 @@ export default {
   components: { RoleCreate },
   data() {
     return {
+      currentPage: 1,
+      total: 0,
       dialogFormVisible: false,
       roles: [],
       perms: [],
@@ -202,6 +214,28 @@ export default {
       if (this.$refs.tree) {
         this.$refs.tree.setCheckedKeys(menuIds)
       }
+    },
+    handleDelete(index, row) {
+      console.log(index, row)
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        this.roles.splice(index, 1) // 静态将数组删除，不涉及数据库
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+        console.log(row.id)
+      })
+    },
+    handleSizeChange() {
+
+    },
+    handleCurrentChange() {
+
     }
     // onSubmit(role) {
     //   const _this = this

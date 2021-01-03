@@ -5,7 +5,7 @@ const data = Mock.mock({
     id: '@id',
     username: '@name',
     nickname: '@cname',
-    avatarUrl: '@url',
+    avatarUrl: Mock.Random.image('50x50'),
     website: '@url',
     email: '@email',
     'status|1': true,
