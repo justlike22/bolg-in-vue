@@ -175,13 +175,13 @@ export const constantRoutes = [
   },
 
   {
-    path: '/authorityManage',
+    path: '/permissionManage',
     component: Layout,
     children: [
       {
         path: 'index',
-        name: 'authorityManage',
-        component: () => import('@/views/authorityManage/index'),
+        name: 'permissionManage',
+        component: () => import('@/views/permissionManage/index'),
         meta: { title: '权限管理', icon: '' }
       }
     ]

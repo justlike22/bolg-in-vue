@@ -1,21 +1,17 @@
 const Mock = require('mockjs')
 
 const data = Mock.mock({
-  'list|10': [{
+  'list|5': [{
     id: '@id',
-    username: '@name',
-    nickname: '@cname',
-    avatarUrl: '@url',
-    website: '@url',
-    email: '@email',
-    'status|1': true,
+    name: '@cname',
+    description: '@csentence(5)',
     gmtCreate: '@datetime',
     gmtModify: '@datetime'
   }]
 })
 module.exports = [
   {
-    url: '/vue-admin-template/userinfo/list',
+    url: '/vue-admin-template/roles/list',
     type: 'get',
     response: config => {
       const list = data.list
@@ -27,17 +23,6 @@ module.exports = [
         msg: '成功',
         data: list,
         total: list.length
-      }
-    }
-  },
-  {
-    url: 'sys/userinfo/deleteUserByList',
-    type: 'post',
-    response: config => {
-      return {
-        success: true,
-        code: 20000,
-        msg: '成功'
       }
     }
   }

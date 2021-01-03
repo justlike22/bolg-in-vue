@@ -165,16 +165,14 @@ export default {
         type: 'warning',
         center: true
       }).then(() => {
-        this.tableData.splice(index, 1) // 静态将数组删除，不涉及数据库
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
-        })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        console.log(row.id)
+        // deleteUserByList(row).then(response => {
+        //   this.tableData.splice(index, 1) // 静态将数组删除，不涉及数据库
+        //   this.$message({
+        //     type: 'success',
+        //     message: '删除成功!'
+        //   })
+        // })
       })
     },
     handleSizeChange(val) {
