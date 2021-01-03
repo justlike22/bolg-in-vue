@@ -38,8 +38,10 @@
         :data="tableData"
         style="width: 100%"
         :max-height="tableHeight"
-        :row-style="{height:'20px'}"
-        :cell-style="{padding:'0px'}"
+        :row-style="{height:'70px'}"
+        :cell-style="{padding:'0px','text-align':'center'}"
+        :header-cell-style="{'text-align':'center'}"
+        stripe
       >
         <el-table-column
           type="selection"

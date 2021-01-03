@@ -40,6 +40,9 @@
         stripe
         style="width: 100%"
         :max-height="tableHeight"
+        :row-style="{height:'70px'}"
+        :cell-style="{padding:'0px','text-align':'center'}"
+        :header-cell-style="{'text-align':'center'}"
       >
         <el-table-column
           type="selection"
@@ -77,7 +80,7 @@
               size="small"
               @click="handleDelete(scope.$index, scope.row)"
             >
-              移除
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -198,17 +201,17 @@ export default {
       this.dialogFormVisible = true
       this.selectedRole = role
       const permIds = []
-      for (let i = 0; i < role.perms.length; i++) {
-        permIds.push(role.perms[i].id)
-      }
+      // for (let i = 0; i < role.perms.length; i++) {
+      //   permIds.push(role.perms[i].id)
+      // }
       this.selectedPermsIds = permIds
       const menuIds = []
-      for (let i = 0; i < role.menus.length; i++) {
-        menuIds.push(role.menus[i].id)
-        for (let j = 0; j < role.menus[i].children.length; j++) {
-          menuIds.push(role.menus[i].children[j].id)
-        }
-      }
+      // for (let i = 0; i < role.menus.length; i++) {
+      //   menuIds.push(role.menus[i].id)
+      //   for (let j = 0; j < role.menus[i].children.length; j++) {
+      //     menuIds.push(role.menus[i].children[j].id)
+      //   }
+      // }
       this.selectedMenusIds = menuIds
       // 判断树是否已经加载，第一次打开对话框前树不存在，会报错。所以需要设置 default-checked
       if (this.$refs.tree) {

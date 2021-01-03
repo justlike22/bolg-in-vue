@@ -22,7 +22,15 @@
     </el-dialog>
     <add-permission @onSubmit="listRoles()" />
     <el-card style="margin: 18px 2%;width: 95%">
-      <el-table :data="tableData" style="width: 100%" :max-height="tableHeight">
+      <el-table
+        :data="tableData"
+        style="width: 100%"
+        :max-height="tableHeight"
+        stripe
+        :row-style="{height:'20px'}"
+        :cell-style="{padding:'0px','text-align':'center'}"
+        :header-cell-style="{'text-align':'center'}"
+      >
         <el-table-column
           type="selection"
           width="55"
