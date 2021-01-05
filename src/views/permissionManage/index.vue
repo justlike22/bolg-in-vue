@@ -4,7 +4,7 @@
       title="修改权限信息"
       :visible.sync="dialogFormVisible"
     >
-      <el-form ref="dataForm" v-model="selectedPermission" style="text-align: left">
+      <el-form ref="dataForm" v-model="selectedPermission" v-loading="formLoading" style="text-align: left">
         <el-form-item label="权限名" label-width="120px" prop="username">
           <el-input v-model="selectedPermission.name" autocomplete="off" />
         </el-form-item>
@@ -23,6 +23,7 @@
     <add-permission @onSubmit="getPermissionList()" />
     <el-card style="margin: 18px 2%;width: 95%">
       <el-table
+        v-loading="loading"
         :data="tableData"
         style="width: 100%"
         :max-height="tableHeight"
@@ -96,7 +97,9 @@ export default {
       currentPage: 1,
       total: 0,
       dialogFormVisible: false,
-      selectedPermission: []
+      selectedPermission: [],
+      loading: true,
+      formLoading: false
     }
   },
   computed: {
@@ -111,10 +114,11 @@ export default {
     getPermissionList() {
       console.log(this)
       // var that = this
-      axios.get('http://swust.f3322.net:9001/sys/permission/getPermissionList?pageNumber=' + this.currentPage + '&pageSize=10', {
+      axios.get('/sys/permission/getPermissionList?pageNumber=' + this.currentPage + '&pageSize=10', {
         headers: {
           Authorization: 'admin' }
       }).then(resp => {
+        this.loading = false
         if (resp && resp.data.code === 1) {
           this.tableData = resp.data.data.list
           this.total = resp.data.data.total
@@ -128,6 +132,7 @@ export default {
       this.selectedPermission = permission
     },
     onSubmit(permission) {
+      this.formLoading = true
       const time = getCurrentTime()
       // const that = this
       axios.post('http://swust.f3322.net:9001/sys/permission/updatePermission', {
@@ -140,6 +145,7 @@ export default {
           Authorization: 'admin'
         }
       }).then(resp => {
+        this.formLoading = false
         if (resp && resp.data.code === 1) {
           this.$message({
             message: '权限修改成功',
@@ -148,13 +154,13 @@ export default {
           this.dialogFormVisible = false
           this.getPermissionList()
         } else {
-          this.$alert(resp.data.message)
+          this.$alert(resp.data.msg)
         }
       })
     },
     handleDelete(index, row) {
       console.log(index, row)
-      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',

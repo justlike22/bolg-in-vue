@@ -16,6 +16,9 @@ import '@/icons' // icon
 import '@/permission' // permission control
 import 'default-passive-events'
 
+import axios from 'axios'
+Vue.prototype.$axios = axios
+axios.defaults.baseURL = '/api'
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api

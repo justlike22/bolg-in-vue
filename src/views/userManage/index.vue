@@ -4,7 +4,7 @@
       title="修改用户信息"
       :visible.sync="dialogFormVisible"
     >
-      <el-form ref="dataForm" v-model="selectedUser" style="text-align: left">
+      <el-form ref="dataForm" v-model="selectedUser" v-loading="formLoading" style="text-align: left">
         <el-form-item label="用户名" label-width="120px" prop="username">
           <el-input v-model="selectedUser.username" autocomplete="off" />
         </el-form-item>
@@ -32,9 +32,24 @@
         <el-button type="primary" @click="onSubmit(selectedUser)">确 定</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="角色编辑" :visible.sync="roleDialogVisible">
+      <el-checkbox-group v-model="roles">
+        <el-checkbox
+          v-for="(item, index) in roleData"
+          :key="index"
+          :checked="isCheck[index]"
+          :label="item.name"
+        >{{ item.description }}</el-checkbox>
+      </el-checkbox-group>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="roleDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="onSubmitRoles(roles)">确 定</el-button>
+      </div>
+    </el-dialog>
     <add-user @onSubmit="listUsers()" />
     <el-card style="margin: 18px 2%;width: 95%">
       <el-table
+        v-loading="loading"
         :data="tableData"
         style="width: 100%"
         :max-height="tableHeight"
@@ -47,11 +62,11 @@
           type="selection"
           width="55"
         />
-        <el-table-column label="id" width="180">
+        <!-- <el-table-column label="id" width="180">
           <template slot-scope="scope">
             <p>{{ scope.row.id }}</p>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="头像" width="80">
           <template slot-scope="scope">
             <img :src="scope.row.avatarUrl" style="height: 50px;border-radius: 50%">
@@ -90,9 +105,14 @@
             />
           </template>
         </el-table-column>
+        <el-table-column label="角色" width="40">
+          <template slot-scope="scope">
+            <el-button size="mini" type="text" @click="editRole(scope.row)">编辑角色</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button size="mini" type="text" @click="editUser(scope.row)">编辑</el-button>
+            <el-button size="mini" type="text" @click="editUser(scope.row)">修改</el-button>
             <el-button
               size="mini"
               type="text"
@@ -127,9 +147,14 @@ export default {
       tableData: [],
       users: [],
       roles: [],
+      roleData: [],
+      isCheck: [],
       dialogFormVisible: false,
+      roleDialogVisible: false,
       selectedUser: [],
-      selectedRolesIds: []
+      selectedRolesIds: [],
+      loading: true,
+      formLoading: false
     }
   },
   computed: {
@@ -144,10 +169,11 @@ export default {
     listUsers() {
       console.log(this)
       // var that = this
-      axios.get('http://swust.f3322.net:9001/sys/user/getUserList?pageSize=10&pageNumber=' + this.currentPage, {
+      axios.get('/sys/user/getUserList?pageSize=10&pageNumber=' + this.currentPage, {
         headers: {
           Authorization: 'admin' }
       }).then(resp => {
+        this.loading = false
         if (resp && resp.data.code === 1) {
           this.tableData = resp.data.data.list
           this.total = resp.data.data.total
@@ -174,7 +200,34 @@ export default {
       // }
       // this.selectedRolesIds = roleIds
     },
+    editRole(row) {
+      // /sys/role/getRoleList  /sys/userRole/getRoleByUserId?pageNumber=0&pageSize=10&userId=' + row.id
+      this.roleDialogVisible = true
+      axios.get('http://swust.f3322.net:9001/sys/role/getRoleList?pageSize=100&pageNumber=1', {
+        headers: {
+          Authorization: 'admin'
+        }
+      }).then(response => {
+        this.roleData = response.data.data.list
+        axios.get('http://swust.f3322.net:9001/sys/userRole/getRoleByUserId?pageNumber=0&pageSize=10&userId=' + row.id, {
+          headers: {
+            Authorization: 'admin' }
+        }).then(res => {
+          let userRoleList = []
+          userRoleList = response.data.data.list
+          for (var i = 0; i < this.roleData.length; i++) {
+            if (userRoleList[i].id === this.roleData[i].id) {
+              this.isCheck.push(true)
+            } else {
+              this.isCheck.push(false)
+            }
+          }
+          console.log(this.isCheck)
+        })
+      })
+    },
     onSubmit(user) {
+      this.formLoading = true
       const time = getCurrentTime()
       // const that = this
       // const userinfo = []
@@ -190,6 +243,7 @@ export default {
           Authorization: 'admin'
         }
       }).then(resp => {
+        this.formLoading = false
         if (resp && resp.data.code === 1) {
           this.$message({
             message: '用户信息修改成功',
@@ -211,6 +265,9 @@ export default {
       //   }
       // }
       // }
+    },
+    onSubmitRoles(roles) {
+
     },
     handleDelete(index, row) {
       console.log(index, row)

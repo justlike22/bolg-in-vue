@@ -4,7 +4,7 @@
       title="修改角色信息"
       :visible.sync="dialogFormVisible"
     >
-      <el-form ref="dataForm" v-model="selectedRole" style="text-align: left">
+      <el-form ref="dataForm" v-model="selectedRole" v-loading="formLoading" style="text-align: left">
         <el-form-item label="角色名" label-width="120px" prop="username">
           <el-input v-model="selectedRole.name" autocomplete="off" />
         </el-form-item>
@@ -36,6 +36,7 @@
     <role-create @onSubmit="listRoles()" />
     <el-card style="margin: 18px 2%;width: 95%">
       <el-table
+        v-loading="loading"
         :data="roles"
         stripe
         style="width: 100%"
@@ -118,11 +119,13 @@ export default {
       selectedRole: [],
       selectedPermsIds: [],
       selectedMenusIds: [],
-      props: {
-        id: 'id',
-        label: 'nameZh',
-        children: 'children'
-      }
+      // props: {
+      //   id: 'id',
+      //   label: 'nameZh',
+      //   children: 'children'
+      // },
+      loading: true,
+      formLoading: false
     }
   },
   computed: {
@@ -137,10 +140,11 @@ export default {
     listRoles() {
       console.log(this)
       // var that = this
-      axios.get('http://swust.f3322.net:9001/sys/role/getRoleList?pageSize=10&pageNumber=' + this.currentPage, {
+      axios.get('/sys/role/getRoleList?pageSize=10&pageNumber=' + this.currentPage, {
         headers: {
           Authorization: 'admin' }
       }).then(resp => {
+        this.loading = false
         if (resp && resp.data.code === 1) {
           this.roles = resp.data.data.list
           this.total = resp.data.data.total
@@ -155,7 +159,7 @@ export default {
     },
     handleDelete(index, row) {
       console.log(index, row)
-      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+      this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
@@ -188,9 +192,10 @@ export default {
 
     },
     onSubmit(role) {
+      this.formLoading = true
       const time = getCurrentTime()
       // const that = this
-      axios.post('http://swust.f3322.net:9001/sys/permission/updatePermission', {
+      axios.post('http://swust.f3322.net:9001/sys/role/updateRole', {
         'id': role.id,
         'name': role.name,
         'description': role.description,
@@ -199,6 +204,7 @@ export default {
           Authorization: 'admin'
         }
       }).then(resp => {
+        this.formLoading = false
         if (resp && resp.data.code === 1) {
           this.$message({
             message: '角色修改成功',
@@ -207,7 +213,7 @@ export default {
           this.dialogFormVisible = false
           this.listRoles()
         } else {
-          this.$alert(resp.data.message)
+          this.$alert(resp.data.msg)
         }
       })
     }

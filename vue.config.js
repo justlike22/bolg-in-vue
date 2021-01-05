@@ -31,6 +31,16 @@ module.exports = {
   productionSourceMap: false,
   devServer: {
     port: port,
+    proxy: {
+      '/api': {
+        target: 'http://swust.f3322.net:9001',
+        changeOringin: true,
+        ws: true,
+        pathRewrite: {
+          '^/api': ''
+        }
+      }
+    },
     open: true,
     overlay: {
       warnings: false,

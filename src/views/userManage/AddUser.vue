@@ -8,6 +8,7 @@
       @close="clear"
     >
       <el-form
+        v-loading="loading"
         :model="addUserForm"
         label-position="left"
         label-width="0px"
@@ -78,7 +79,8 @@ export default {
         password: '',
         avatarUrl: '',
         email: ''
-      }
+      },
+      loading: false
     }
   },
   methods: {
@@ -92,6 +94,7 @@ export default {
       }
     },
     register() {
+      this.loading = true
       const user = this.addUserForm
       const time = getCurrentTime()
       axios.post('http://swust.f3322.net:9001/sys/user/addUser', {
@@ -106,6 +109,7 @@ export default {
           Authorization: 'admin'
         }
       }).then(resp => {
+        this.loading = false
         if (resp && resp.data.code === 1) {
           this.$message({ message: '注册成功', type: 'success' }
           )
