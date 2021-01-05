@@ -103,8 +103,9 @@
 </template>
 
 <script>
+import axios from 'axios'
 import RoleCreate from './RoleCreate'
-import { getRolesList } from '@/api/roles'
+import { getCurrentTime } from '@/api/getCurrentTime'
 export default {
   name: 'UserRole',
   components: { RoleCreate },
@@ -114,8 +115,6 @@ export default {
       total: 0,
       dialogFormVisible: false,
       roles: [],
-      perms: [],
-      menus: [],
       selectedRole: [],
       selectedPermsIds: [],
       selectedMenusIds: [],
@@ -128,95 +127,31 @@ export default {
   },
   computed: {
     tableHeight() {
-      return window.innerHeight - 320
+      return window.innerHeight - 240
     }
   },
   mounted() {
-    // this.listRoles()
-    // this.listPerms()
-    // this.listMenus()
-    getRolesList().then(response => {
-      console.log(response)
-      this.roles = response.data
-      this.total = response.total
-    })
+    this.listRoles()
   },
   methods: {
     listRoles() {
-      // var _this = this
-      // this.$axios.get('/admin/role').then(resp => {
-      //   if (resp && resp.status === 200) {
-      //     _this.roles = resp.data.result
-      //   }
-      // })
+      console.log(this)
+      // var that = this
+      axios.get('http://swust.f3322.net:9001/sys/role/getRoleList?pageSize=10&pageNumber=' + this.currentPage, {
+        headers: {
+          Authorization: 'admin' }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.roles = resp.data.data.list
+          this.total = resp.data.data.total
+        } else {
+          this.$message.error('失败')
+        }
+      })
     },
-    // listPerms() {
-    //   var _this = this
-    //   this.$axios.get('/admin/role/perm').then(resp => {
-    //     if (resp && resp.data.code === 200) {
-    //       _this.perms = resp.data.result
-    //     }
-    //   })
-    // },
-    // listMenus() {
-    //   var _this = this
-    //   this.$axios.get('/admin/role/menu').then(resp => {
-    //     if (resp && resp.data.code === 200) {
-    //       _this.menus = resp.data.result
-    //     }
-    //   })
-    // },
-    // commitStatusChange(value, role) {
-    //   if (role.id !== 1) {
-    //     this.$confirm('是否更改角色状态？', '提示', {
-    //       confirmButtonText: '确定',
-    //       cancelButtonText: '取消',
-    //       type: 'warning'
-    //     }).then(() => {
-    //       this.$axios.put('/admin/role/status', {
-    //         enabled: value,
-    //         id: role.id
-    //       }).then(resp => {
-    //         if (resp && resp.data.code === 200) {
-    //           if (value) {
-    //             this.$message('角色 [' + role.nameZh + '] 已启用')
-    //           } else {
-    //             this.$message('角色 [' + role.nameZh + '] 已禁用')
-    //           }
-    //         }
-    //       })
-    //     }).catch(() => {
-    //       role.enabled = !role.enabled
-    //       this.$message({
-    //         type: 'info',
-    //         message: '已取消'
-    //       })
-    //     })
-    //   } else {
-    //     role.enabled = true
-    //     this.$alert('无法禁用系统管理员！')
-    //   }
-    // },
     editRole(role) {
       this.dialogFormVisible = true
       this.selectedRole = role
-      const permIds = []
-      // for (let i = 0; i < role.perms.length; i++) {
-      //   permIds.push(role.perms[i].id)
-      // }
-      this.selectedPermsIds = permIds
-      const menuIds = []
-      // for (let i = 0; i < role.menus.length; i++) {
-      //   menuIds.push(role.menus[i].id)
-      //   for (let j = 0; j < role.menus[i].children.length; j++) {
-      //     menuIds.push(role.menus[i].children[j].id)
-      //   }
-      // }
-      this.selectedMenusIds = menuIds
-      // 判断树是否已经加载，第一次打开对话框前树不存在，会报错。所以需要设置 default-checked
-      if (this.$refs.tree) {
-        this.$refs.tree.setCheckedKeys(menuIds)
-      }
     },
     handleDelete(index, row) {
       console.log(index, row)
@@ -226,12 +161,24 @@ export default {
         type: 'warning',
         center: true
       }).then(() => {
-        this.roles.splice(index, 1) // 静态将数组删除，不涉及数据库
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
+        const ids = []
+        ids.push(row.id)
+        axios.post('http://swust.f3322.net:9001/sys/role/deleteRoleByList', ids, {
+          headers: {
+            Authorization: 'admin'
+          }
+        }).then(response => {
+          console.log(response)
+          if (response.data.code === 1) {
+            this.listRoles()
+            this.$message({
+              message: '角色删除成功',
+              type: 'success'
+            })
+          } else {
+            this.$message.error('删除失败')
+          }
         })
-        console.log(row.id)
       })
     },
     handleSizeChange() {
@@ -239,39 +186,31 @@ export default {
     },
     handleCurrentChange() {
 
+    },
+    onSubmit(role) {
+      const time = getCurrentTime()
+      // const that = this
+      axios.post('http://swust.f3322.net:9001/sys/permission/updatePermission', {
+        'id': role.id,
+        'name': role.name,
+        'description': role.description,
+        'gmtModify': time }, {
+        headers: {
+          Authorization: 'admin'
+        }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.$message({
+            message: '角色修改成功',
+            type: 'success'
+          })
+          this.dialogFormVisible = false
+          this.listRoles()
+        } else {
+          this.$alert(resp.data.message)
+        }
+      })
     }
-    // onSubmit(role) {
-    //   const _this = this
-    //   // 根据视图绑定的角色 id 向后端传送角色信息
-    //   const perms = []
-    //   for (let i = 0; i < _this.selectedPermsIds.length; i++) {
-    //     for (let j = 0; j < _this.perms.length; j++) {
-    //       if (_this.selectedPermsIds[i] === _this.perms[j].id) {
-    //         perms.push(_this.perms[j])
-    //       }
-    //     }
-    //   }
-    //   this.$axios.put('/admin/role', {
-    //     id: role.id,
-    //     name: role.name,
-    //     nameZh: role.nameZh,
-    //     enabled: role.enabled,
-    //     perms: perms
-    //   }).then(resp => {
-    //     if (resp && resp.data.code === 200) {
-    //       this.$alert(resp.data.result)
-    //       this.dialogFormVisible = false
-    //       this.listRoles()
-    //     }
-    //   })
-    //   this.$axios.put('/admin/role/menu?rid=' + role.id, {
-    //     menusIds: this.$refs.tree.getCheckedKeys()
-    //   }).then(resp => {
-    //     if (resp && resp.data.code === 200) {
-    //       console.log(resp.data.result)
-    //     }
-    //   })
-    // }
   }
 }
 </script>

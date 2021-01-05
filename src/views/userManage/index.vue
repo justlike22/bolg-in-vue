@@ -32,7 +32,7 @@
         <el-button type="primary" @click="onSubmit(selectedUser)">确 定</el-button>
       </div>
     </el-dialog>
-    <add-user @onSubmit="listRoles()" />
+    <add-user @onSubmit="listUsers()" />
     <el-card style="margin: 18px 2%;width: 95%">
       <el-table
         :data="tableData"
@@ -54,7 +54,7 @@
         </el-table-column>
         <el-table-column label="头像" width="80">
           <template slot-scope="scope">
-            <img :src="scope.row.avatarUrl">
+            <img :src="scope.row.avatarUrl" style="height: 50px;border-radius: 50%">
           </template>
         </el-table-column>
         <el-table-column label="用户名" width="180">
@@ -86,6 +86,7 @@
               v-model="scope.row.status"
               active-color="#13ce66"
               inactive-color="#ff4949"
+              @change="(value) => toggleStatus(value, scope.row)"
             />
           </template>
         </el-table-column>
@@ -114,9 +115,9 @@
 </template>
 
 <script>
-// import axios from 'axios'
+import axios from 'axios'
 import AddUser from './AddUser'
-import { getUserinfoList } from '@/api/userinfo'
+import { getCurrentTime } from '@/api/getCurrentTime'
 export default {
   components: { AddUser },
   data() {
@@ -137,36 +138,79 @@ export default {
     }
   },
   mounted() {
-    getUserinfoList().then(response => {
-      console.log(response)
-      this.tableData = response.data
-      this.total = response.total
-    })
+    this.listUsers()
   },
   methods: {
-    handleEdit(index, row) {
+    listUsers() {
+      console.log(this)
+      // var that = this
+      axios.get('http://swust.f3322.net:9001/sys/user/getUserList?pageSize=10&pageNumber=' + this.currentPage, {
+        headers: {
+          Authorization: 'admin' }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.tableData = resp.data.data.list
+          this.total = resp.data.data.total
+          this.tableData.forEach(element => {
+            if (element.status === 1) {
+              element.status = true
+            } else {
+              element.status = false
+            }
+          })
+        } else {
+          this.$message.error('失败')
+        }
+      })
     },
     editUser(user) {
       console.log(user)
       this.dialogFormVisible = true
       this.selectedUser = user
+      console.log(this.selectedUser)
       // const roleIds = []
       // for (let i = 0; i < user.roles.length; i++) {
       //   roleIds.push(user.roles[i].id)
       // }
       // this.selectedRolesIds = roleIds
     },
-    onSubmit(role) {
-      const _this = this
-      // 根据视图绑定的角色 id 向后端传送角色信息
-      const perms = []
-      for (let i = 0; i < _this.selectedPermsIds.length; i++) {
-        for (let j = 0; j < _this.perms.length; j++) {
-          if (_this.selectedPermsIds[i] === _this.perms[j].id) {
-            perms.push(_this.perms[j])
-          }
+    onSubmit(user) {
+      const time = getCurrentTime()
+      // const that = this
+      // const userinfo = []
+      axios.post('http://swust.f3322.net:9001/sys/user/updateUserInfo', {
+        'id': user.id,
+        'username': user.username,
+        'nickname': user.nickname,
+        'avatarUrl': user.avatarUrl,
+        'email': user.email,
+        'password': user.password,
+        'gmtModify': time }, {
+        headers: {
+          Authorization: 'admin'
         }
-      }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.$message({
+            message: '用户信息修改成功',
+            type: 'success'
+          })
+          this.dialogFormVisible = false
+          // 修改角色后重新请求用户信息，实现视图更新
+          this.listUsers()
+        } else {
+          this.$alert(resp.data.message)
+        }
+      })
+      // 根据视图绑定的角色 id 向后端传送角色信息
+      // const perms = []
+      // for (let i = 0; i < that.selectedPermsIds.length; i++) {
+      //   for (let j = 0; j < that.perms.length; j++) {
+      //     if (that.selectedPermsIds[i] === that.perms[j].id) {
+      //       perms.push(that.perms[j])
+      //   }
+      // }
+      // }
     },
     handleDelete(index, row) {
       console.log(index, row)
@@ -176,14 +220,47 @@ export default {
         type: 'warning',
         center: true
       }).then(() => {
-        console.log(row.id)
-        // deleteUserByList(row).then(response => {
-        //   this.tableData.splice(index, 1) // 静态将数组删除，不涉及数据库
-        //   this.$message({
-        //     type: 'success',
-        //     message: '删除成功!'
-        //   })
-        // })
+        const ids = []
+        ids.push(row.id)
+        axios.post('http://swust.f3322.net:9001/sys/user/deleteUserByList', ids, {
+          headers: {
+            Authorization: 'admin'
+          }
+        }).then(response => {
+          console.log(response)
+          if (response.data.code === 1) {
+            this.listUsers()
+            this.$message({
+              message: '用户删除成功',
+              type: 'success'
+            })
+          } else {
+            this.$message.error('删除失败')
+          }
+        })
+      })
+    },
+    toggleStatus(val, row) {
+      const time = getCurrentTime()
+      let changestatus = 0
+      if (row.status) {
+        changestatus = 1
+      } else {
+        changestatus = 0
+      }
+      axios.post('http://swust.f3322.net:9001/sys/user/updateUserInfo', {
+        'id': row.id,
+        'status': changestatus,
+        'gmtModify': time
+      }, {
+        headers: {
+          Authorization: 'admin'
+        }
+      }).then(response => {
+        this.$message({
+          message: '用户状态修改成功',
+          type: 'success'
+        })
       })
     },
     handleSizeChange(val) {
@@ -191,6 +268,8 @@ export default {
     },
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`)
+      this.currentPage = val
+      this.listUsers(this.currentPage)
     }
   }
 }

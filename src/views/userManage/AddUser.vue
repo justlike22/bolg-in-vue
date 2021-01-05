@@ -31,7 +31,7 @@
         <el-form-item prop="password">
           <el-input
             v-model="addUserForm.password"
-            type="password"
+            type="text"
             auto-complete="off"
             placeholder="密码"
           />
@@ -61,6 +61,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { getCurrentTime } from '@/api/getCurrentTime'
 export default {
   name: 'AddUsre',
   data() {
@@ -90,32 +92,30 @@ export default {
       }
     },
     register() {
-      console.log(this.addUserForm)
-      this.$alert('注册成功', '提示', {
-        confirmButtonText: '确定'
+      const user = this.addUserForm
+      const time = getCurrentTime()
+      axios.post('http://swust.f3322.net:9001/sys/user/addUser', {
+        'id': user.id,
+        'username': user.username,
+        'nickname': user.nickname,
+        'avatarUrl': user.avatarUrl,
+        'email': user.email,
+        'password': user.password,
+        'gmtCreate': time }, {
+        headers: {
+          Authorization: 'admin'
+        }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.$message({ message: '注册成功', type: 'success' }
+          )
+          this.dialogFormVisible = false
+          this.clear()
+          this.$emit('onSubmit')
+        } else {
+          this.$alert(resp.data.message)
+        }
       })
-      // this.$axios
-      //   .post('/register', {
-      //     username: this.addUserForm.username,
-      //     nickname: this.addUserForm.nickname,
-      //     password: this.addUserForm.password,
-      //     avatarUrl: this.addUserForm.avatarUrl,
-      //     email: this.addUserForm.email
-      //   })
-      // .then(resp => {
-      //   if (resp.data.code === 200) {
-      //     this.$alert('注册成功', '提示', {
-      //       confirmButtonText: '确定'
-      //     })
-      //     this.clear()
-      //     this.$emit('onSubmit')
-      //   } else {
-      //     this.$alert(resp.data.message, '提示', {
-      //       confirmButtonText: '确定'
-      //     })
-      //   }
-      // })
-      // .catch(failResponse => {})
     }
   }
 }

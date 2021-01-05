@@ -1,7 +1,7 @@
 const Mock = require('mockjs')
 
 const data = Mock.mock({
-  'list|5': [{
+  'list|6': [{
     id: '@id',
     name: '@name',
     code: '@url',

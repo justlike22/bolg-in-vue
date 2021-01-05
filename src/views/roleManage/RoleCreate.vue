@@ -22,9 +22,9 @@
             placeholder="角色名"
           />
         </el-form-item>
-        <el-form-item prop="nameZh">
+        <el-form-item prop="description">
           <el-input
-            v-model="roleForm.nameZh"
+            v-model="roleForm.description"
             type="text"
             auto-complete="off"
             placeholder="角色描述"
@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { getCurrentTime } from '@/api/getCurrentTime'
 export default {
   name: 'RoleCreate',
   data() {
@@ -53,7 +55,7 @@ export default {
       checked: true,
       roleForm: {
         name: '',
-        nameZh: ''
+        description: ''
       },
       loading: false
     }
@@ -62,30 +64,31 @@ export default {
     clear() {
       this.roleForm = {
         name: '',
-        nameZh: ''
+        description: ''
       }
     },
     createRole() {
-      this.$axios
-        .post('/admin/role', {
-          name: this.roleForm.name,
-          nameZh: this.roleForm.nameZh
-        })
-        .then(resp => {
-          if (resp.data.code === 200) {
-            this.$alert(resp.data.result, '提示', {
-              confirmButtonText: '确定'
-            })
-            this.clear()
-            this.$emit('onSubmit')
-          } else {
-            this.$alert(resp.data.message, '提示', {
-              confirmButtonText: '确定'
-            })
-          }
-        })
-        .catch(failResponse => {})
-      this.dialogFormVisible = false
+      console.log(this)
+      const role = this.roleForm
+      const time = getCurrentTime()
+      axios.post('http://swust.f3322.net:9001/sys/role/addRole', {
+        'name': role.name,
+        'description': role.description,
+        'gmtCreate': time }, {
+        headers: {
+          Authorization: 'admin'
+        }
+      }).then(resp => {
+        if (resp && resp.data.code === 1) {
+          this.$message({ message: '添加成功', type: 'success' }
+          )
+          this.dialogFormVisible = false
+          this.clear()
+          this.$emit('onSubmit')
+        } else {
+          this.$alert(resp.data.message)
+        }
+      })
     }
   }
 }
